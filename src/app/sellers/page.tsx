@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/components/ui/use-toast"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -47,6 +48,7 @@ export default function SellersPage() {
   const router = useRouter()
   const [sellers, setSellers] = useState<Seller[]>([])
   const [searchTerm, setSearchTerm] = useState("")
+  const { toast } = useToast()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -128,6 +130,28 @@ export default function SellersPage() {
           </Badge>
         )
     }
+  }
+
+  const handleStatusChange = (sellerId: string, newStatus: Seller["status"]) => {
+    const seller = sellers.find(s => s.id === sellerId)
+    if (!seller) return
+
+    setSellers(
+      sellers.map((seller) =>
+        seller.id === sellerId ? { ...seller, status: newStatus } : seller
+      )
+    )
+
+    const statusMessage = newStatus === "active" 
+      ? "activated" 
+      : newStatus === "pending" 
+        ? "pending" 
+        : "suspended"
+
+    toast({
+      title: `Seller ${statusMessage.charAt(0).toUpperCase() + statusMessage.slice(1)}`,
+      description: `The seller "${seller.name}" has been ${statusMessage}.`,
+    })
   }
 
   if (isLoading) {
@@ -212,24 +236,32 @@ export default function SellersPage() {
                         <DropdownMenuSeparator />
                         {seller.status === "pending" && (
                           <>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleStatusChange(seller.id, "active")}
+                            >
                               <CheckCircleIcon className="mr-2 h-4 w-4" />
                               Approve
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleStatusChange(seller.id, "suspended")}
+                            >
                               <XCircleIcon className="mr-2 h-4 w-4" />
                               Reject
                             </DropdownMenuItem>
                           </>
                         )}
                         {seller.status === "active" && (
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleStatusChange(seller.id, "suspended")}
+                          >
                             <XCircleIcon className="mr-2 h-4 w-4" />
                             Suspend
                           </DropdownMenuItem>
                         )}
                         {seller.status === "suspended" && (
-                          <DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleStatusChange(seller.id, "active")}
+                          >
                             <CheckCircleIcon className="mr-2 h-4 w-4" />
                             Activate
                           </DropdownMenuItem>

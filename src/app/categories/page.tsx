@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/components/ui/use-toast"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -51,6 +52,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const { toast } = useToast()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -147,11 +149,25 @@ export default function CategoriesPage() {
   }
 
   const handleStatusChange = (categoryId: string, newStatus: Category["status"]) => {
+    const category = categories.find(c => c.id === categoryId)
+    if (!category) return
+
     setCategories(
       categories.map((category) =>
         category.id === categoryId ? { ...category, status: newStatus } : category
       )
     )
+
+    const statusMessage = newStatus === "approved" 
+      ? "approved" 
+      : newStatus === "rejected" 
+        ? "rejected" 
+        : "pending"
+
+    toast({
+      title: `Category ${statusMessage.charAt(0).toUpperCase() + statusMessage.slice(1)}`,
+      description: `The category "${category.name}" has been ${statusMessage}.`,
+    })
   }
 
   if (isLoading) {

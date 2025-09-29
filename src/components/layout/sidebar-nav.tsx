@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/components/ui/use-toast"
 import {
   UsersIcon,
   ShoppingBagIcon,
   TagIcon,
+  KeyIcon,
   ArrowLeftOnRectangleIcon,
 } from "@heroicons/react/24/outline"
 
@@ -33,11 +35,25 @@ const navigation = [
     href: "/categories",
     icon: TagIcon,
   },
+  {
+    name: "Permissions",
+    href: "/permissions",
+    icon: KeyIcon,
+  },
 ]
 
 export function SidebarNav() {
   const pathname = usePathname()
   const { logout, user } = useAuth()
+  const { toast } = useToast()
+
+  const handleLogout = () => {
+    logout()
+    toast({
+      title: "Logged Out",
+      description: "You have been successfully logged out.",
+    })
+  }
 
   return (
     <div className="hidden border-r bg-muted/40 md:block">
@@ -78,7 +94,7 @@ export function SidebarNav() {
           <Button
             variant="ghost"
             className="w-full justify-start mt-2"
-            onClick={logout}
+            onClick={handleLogout}
           >
             <ArrowLeftOnRectangleIcon className="mr-2 h-4 w-4" />
             Logout

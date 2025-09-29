@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/auth-context"
+import { useToast } from "@/components/ui/use-toast"
 import { DashboardLayout } from "@/components/layout/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -52,6 +53,7 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
+  const { toast } = useToast()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -153,11 +155,25 @@ export default function ProductsPage() {
   }
 
   const handleStatusChange = (productId: string, newStatus: Product["status"]) => {
+    const product = products.find(p => p.id === productId)
+    if (!product) return
+
     setProducts(
       products.map((product) =>
         product.id === productId ? { ...product, status: newStatus } : product
       )
     )
+
+    const statusMessage = newStatus === "approved" 
+      ? "approved" 
+      : newStatus === "rejected" 
+        ? "rejected" 
+        : "pending"
+
+    toast({
+      title: `Product ${statusMessage.charAt(0).toUpperCase() + statusMessage.slice(1)}`,
+      description: `The product "${product.name}" has been ${statusMessage}.`,
+    })
   }
 
   if (isLoading) {
